@@ -87,3 +87,91 @@ End Sub
 Public Sub ShowDialog()
     Application.Dialogs(xlDialogPrinterSetup).Show
 End Sub
+
+''' <summary>
+''' プリンタの印刷設定を開く
+''' </summary>
+''' <param name="strName">プリンタ名</param>
+Public Sub ShowSetting(ByVal strName As String)
+    If PrinterExists(strName) = False Then
+        Err.Raise 1024, "Printers.ShowSetting", "インデックスが有効範囲にありません。"
+    End If
+    
+    Dim objWshShell As Object: Set objWshShell = CreateObject("WScript.Shell")
+    objWshShell.Run "rundll32 printui.dll PrintUIEntry /e /n """ & strName & """", 1, True
+    Set objWshShell = Nothing
+    
+End Sub
+
+''' <summary>
+''' プリンタの印刷設定を保存する
+''' </summary>
+''' <param name="strName">プリンタ名</param>
+Public Sub SaveSetting(ByVal strName As String)
+    If PrinterExists(strName) = False Then
+        Err.Raise 1024, "Printers.SaveSetting", "インデックスが有効範囲にありません。"
+    End If
+    
+    Dim objWshShell As Object: Set objWshShell = CreateObject("WScript.Shell")
+    Dim strFn As String: strFn = Application.GetSaveAsFilename(InitialFileName:="")
+    If strFn = "False" Then
+        Set objWshShell = Nothing
+        Exit Sub
+    End If
+    
+    Dim fso As Object: Set fso = CreateObject("Scripting.FileSystemObject")
+    If fso.FileExists(strFn) = True Then
+        fso.GetFile(strFn).Delete True
+    End If
+    
+    objWshShell.Run "rundll32 printui.dll PrintUIEntry /Ss /n """ & strName & """ /a """ & strFn & """", 1, True
+    Set objWshShell = Nothing
+    Set fso = Nothing
+    
+End Sub
+
+''' <summary>
+''' プリンタの印刷設定を復元する
+''' </summary>
+''' <param name="strName">プリンタ名</param>
+Public Sub RestoreSetting(ByVal strName As String)
+    If PrinterExists(strName) = False Then
+        Err.Raise 1024, "Printers.SaveSetting", "インデックスが有効範囲にありません。"
+    End If
+    
+    Dim objWshShell As Object: Set objWshShell = CreateObject("WScript.Shell")
+    Dim strFn As String: strFn = Application.GetOpenFilename
+    If strFn = "False" Then
+        Set objWshShell = Nothing
+        Exit Sub
+    End If
+    
+    Dim fso As Object: Set fso = CreateObject("Scripting.FileSystemObject")
+    If fso.FileExists(strFn) = False Then
+        Set objWshShell = Nothing
+        Set fso = Nothing
+        Exit Sub
+    End If
+    
+    objWshShell.Run "rundll32 printui.dll PrintUIEntry /Sr /n """ & strName & """ /a """ & strFn & """ u", 1, True
+    Set objWshShell = Nothing
+    Set fso = Nothing
+    
+End Sub
+
+''' <summary>
+''' 指定したプリンタ名が登録されているか確認する
+''' </summary>
+''' <param name="strName">検索するプリンタ名</param>
+Public Function PrinterExists(ByVal strName As String) As Boolean
+    Dim i As Long
+    For i = 0 To Length - 1
+        If prtList(i) = strName Then
+            PrinterExists = True
+            Exit Function
+        End If
+    Next i
+    
+    PrinterExists = False
+    
+End Function
