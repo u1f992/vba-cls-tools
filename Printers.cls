@@ -134,16 +134,21 @@ End Sub
 ''' プリンタの印刷設定を復元する
 ''' </summary>
 ''' <param name="strName">プリンタ名</param>
-Public Sub RestoreSetting(ByVal strName As String)
+Public Sub RestoreSetting(ByVal strName As String, Optional ByVal strPath As String = "")
     If PrinterExists(strName) = False Then
         Err.Raise 1024, "Printers.SaveSetting", "インデックスが有効範囲にありません。"
     End If
     
     Dim objWshShell As Object: Set objWshShell = CreateObject("WScript.Shell")
-    Dim strFn As String: strFn = Application.GetOpenFilename
-    If strFn = "False" Then
-        Set objWshShell = Nothing
-        Exit Sub
+    Dim strFn As String
+    If strPath = "" Then
+        strFn = Application.GetOpenFilename
+        If strFn = "False" Then
+            Set objWshShell = Nothing
+            Exit Sub
+        End If
+    Else
+        strFn = strPath
     End If
     
     Dim fso As Object: Set fso = CreateObject("Scripting.FileSystemObject")
